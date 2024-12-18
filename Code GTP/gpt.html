@@ -1,0 +1,632 @@
+<!-- Main landing page -->
+<html>
+<head>
+    <canvas id="bgAnimation"></canvas>
+
+    <style>
+        @keyframes typing {
+            from { width: 0; }
+            to { width: 100%; }
+        }
+
+        @keyframes blink {
+            50% { border-color: transparent; }
+        }
+
+        @keyframes blink-caret {
+            from, to { border-right-color: transparent }
+            50% { border-right-color: #CCCCCC; }
+        }
+
+        body {
+            background-color: #1E1E1E;
+            margin: 0;
+            font-family: Arial, sans-serif;
+            color: #CCCCCC;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+        }
+
+        .chat-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            width: 85%;
+            padding: 20px;
+            max-width: 600px;
+        }
+
+        .input-container {
+            display: flex;
+            align-items: center;
+            background-color: #2D2D2D;
+            border-radius: 10px;
+            padding: 8px;
+            width: 100%;
+            max-width: 600px;
+            transition: box-shadow 0.3s ease;
+        }
+
+        .input-container input {
+            flex: 1;
+            background: none;
+            border: none;
+            color: #CCCCCC;
+            font-size: 14px;
+            padding: 8px;
+            outline: none;
+            position: relative;
+        }
+
+        .input-container input::placeholder {
+            border-right: 2px solid transparent;
+            animation: blink-caret 0.75s step-end infinite;
+        }
+
+        .input-container .search-icon {
+            color: #CCCCCC;
+            font-size: 16px;
+            margin-left: 10px;
+        }
+
+        .footer {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-top: 10px;
+        }
+
+        .footer img {
+            width: 16px;
+            height: 16px;
+            margin-right: 5px;
+        }
+
+        .footer span {
+            color: #CCCCCC;
+            font-size: 14px;
+        }
+
+        .input-container:focus-within {
+            box-shadow: 0 0 10px #888;
+        }
+
+        .typing-effect {
+            display: inline-block;
+            overflow: hidden;
+            white-space: nowrap;
+            border-right: 3px solid;
+            animation: typing 3s steps(30, end), blink 0.75s step-end infinite;
+        }
+
+        .chat-messages {
+            width: 100%;
+            max-width: 800px;
+            margin-bottom: 20px;
+            overflow-y: auto;
+            max-height: 60vh;
+        }
+
+        .message {
+            margin: 10px 0;
+            padding: 15px;
+            border-radius: 15px;
+            max-width: 70%;
+            word-wrap: break-word;
+        }
+
+        .user-message {
+            background-color: #2D2D2D;
+            margin-left: auto;
+            border-bottom-right-radius: 5px;
+        }
+
+        .bot-message {
+            background-color: #4A4A4A;
+            margin-right: auto;
+            border-bottom-left-radius: 5px;
+        }
+
+        #bgAnimation {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: -1;
+        }
+
+        .features {
+            margin-bottom: 20px;
+            text-align: center;
+            max-width: 600px;
+            padding: 15px;
+        }
+
+        .features h2 {
+            color: #4A9EFF;
+            margin-bottom: 20px;
+            font-size: 22px;
+            text-shadow: 0 0 10px rgba(74, 158, 255, 0.3);
+        }
+
+        .feature-list {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 15px;
+        }
+
+        .feature-item {
+            background: linear-gradient(145deg, #2D2D2D, #353535);
+            padding: 15px;
+            border-radius: 15px;
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+        }
+
+        .feature-item:hover {
+            transform: translateY(-5px);
+            background: linear-gradient(145deg, #353535, #404040);
+            box-shadow: 0 6px 20px rgba(74, 158, 255, 0.15);
+        }
+
+        .feature-item i {
+            font-size: 20px;
+            color: #4A9EFF;
+            text-shadow: 0 0 10px rgba(74, 158, 255, 0.3);
+        }
+
+        .feature-item span {
+            color: #FFFFFF;
+            font-size: 14px;
+            font-weight: 500;
+        }
+
+        @media (max-width: 600px) {
+            .feature-list {
+                grid-template-columns: 1fr;
+            }
+            
+            .features h2 {
+                font-size: 24px;
+            }
+        }
+
+        @keyframes pulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.2); }
+            100% { transform: scale(1); }
+        }
+
+        .listening {
+            animation: pulse 1.5s infinite;
+        }
+
+        .voice-popup {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.8);
+            z-index: 1000;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .voice-popup.show {
+            display: flex;
+        }
+
+        .voice-popup-content {
+            background: #2D2D2D;
+            padding: 30px;
+            border-radius: 15px;
+            text-align: center;
+            box-shadow: 0 0 20px rgba(0, 0, 0, 0.3);
+        }
+
+        .pulse-icon {
+            font-size: 40px;
+            color: #4A9EFF;
+            margin-bottom: 15px;
+            animation: pulse 1.5s infinite;
+        }
+
+        .voice-popup p {
+            color: #CCCCCC;
+            margin: 10px 0;
+            font-size: 18px;
+        }
+
+        .wave-container {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 5px;
+            margin-top: 15px;
+        }
+
+        .wave {
+            width: 4px;
+            height: 20px;
+            background: #4A9EFF;
+            animation: wave 1s infinite;
+            border-radius: 2px;
+        }
+
+        .wave:nth-child(2) {
+            animation-delay: 0.2s;
+        }
+
+        .wave:nth-child(3) {
+            animation-delay: 0.4s;
+        }
+
+        @keyframes wave {
+            0%, 100% { height: 20px; }
+            50% { height: 40px; }
+        }
+    </style>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css">
+</head>
+<body>
+    <div class="chat-container">
+        <div class="features">
+            <h2>Welcome to Millennium Bot</h2>
+            <div class="feature-list">
+                <div class="feature-item">
+                    <i class="fas fa-robot"></i>
+                    <span>AI-Powered Chat Assistant</span>
+                </div>
+                <div class="feature-item">
+                    <i class="fas fa-brain"></i>
+                    <span>Smart Responses</span>
+                </div>
+                <div class="feature-item">
+                    <i class="fas fa-globe"></i>
+                    <span>Website Navigation</span>
+                </div>
+                <div class="feature-item">
+                    <i class="fas fa-lightbulb"></i>
+                    <span>Knowledge Base</span>
+                </div>
+            </div>
+        </div>
+        <div class="input-container">
+            <input id="animated-input" type="text"/>
+            <i class="fas fa-search search-icon" onclick="handleSearch()" style="cursor: pointer;"></i>
+            <i class="fas fa-microphone" id="voice-input-btn" style="cursor: pointer; margin-left: 10px; color: #CCCCCC;"></i>
+        </div>
+        <div class="footer">
+            <img alt="Millennium World School Logo" height="16" 
+                 src="https://i.ibb.co/0M7zQrS/millennium-logo.png" width="16"/>
+            <span>Millennium bot</span>
+        </div>
+        <div id="voice-popup" class="voice-popup">
+            <div class="voice-popup-content">
+                <i class="fas fa-microphone pulse-icon"></i>
+                <p id="voice-status">Listening...</p>
+                <div class="wave-container">
+                    <div class="wave"></div>
+                    <div class="wave"></div>
+                    <div class="wave"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <script>
+        const placeholders = [
+            "Type your search query and press Enter to see results",
+            "Ask me about Anything...",
+            "Try asking 'What can you do?'",
+            "Type 'help' to see all commands",
+            "Ask me anything about science...",
+        ];
+        let currentIndex = 0;
+        const input = document.getElementById('animated-input');
+        let typeInterval, deleteInterval;
+
+        function typeEffect(text, callback) {
+            let i = 0;
+            input.placeholder = '|';
+            typeInterval = setInterval(() => {
+                if (i < text.length) {
+                    input.placeholder = text.substring(0, i + 1) + '|';
+                    i++;
+                } else {
+                    clearInterval(typeInterval);
+                    setTimeout(callback, 1000);
+                }
+            }, 100);
+        }
+
+        function deleteEffect(callback) {
+            let text = input.placeholder.slice(0, -1);
+            deleteInterval = setInterval(() => {
+                if (text.length > 0) {
+                    text = text.substring(0, text.length - 1);
+                    input.placeholder = text + '|';
+                } else {
+                    clearInterval(deleteInterval);
+                    setTimeout(callback, 500);
+                }
+            }, 50);
+        }
+
+        function loopPlaceholders() {
+            if (!document.hasFocus() || !input.matches(':focus')) {
+                typeEffect(placeholders[currentIndex], () => {
+                    deleteEffect(() => {
+                        currentIndex = (currentIndex + 1) % placeholders.length;
+                        loopPlaceholders();
+                    });
+                });
+            }
+        }
+
+        // Start the animation
+        loopPlaceholders();
+
+        // Stop animation on focus
+        input.addEventListener('focus', () => {
+            clearInterval(typeInterval);
+            clearInterval(deleteInterval);
+            input.placeholder = '';
+        });
+
+        // Restart animation on blur if input is empty
+        input.addEventListener('blur', () => {
+            if (input.value === '') {
+                setTimeout(loopPlaceholders, 500);
+            }
+        });
+
+        // Handle search and redirection
+        input.addEventListener('keydown', function(e) {
+            if (e.key === 'Enter' || e.keyCode === 13) {
+                e.preventDefault();
+                const message = input.value.replace(/\s+$/, '');
+                if (message.length > 0) {
+                    window.location.href = 'chat.html?q=' + encodeURIComponent(message);
+                }
+            }
+        });
+
+        function handleSearch() {
+            const message = input.value.replace(/\s+$/, '');
+            if (message.length > 0) {
+                window.location.href = 'chat.html?q=' + encodeURIComponent(message);
+            }
+        }
+
+        // Add this helper function to test the URL parameters
+        function getQueryParam(param) {
+            const urlParams = new URLSearchParams(window.location.search);
+            return urlParams.get(param);
+        }
+
+        const canvas = document.getElementById('bgAnimation');
+        const ctx = canvas.getContext('2d');
+
+        // Set canvas size
+        function resizeCanvas() {
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
+        }
+        resizeCanvas();
+        window.addEventListener('resize', resizeCanvas);
+
+        // Particle class
+        class Particle {
+            constructor() {
+                this.reset();
+            }
+
+            reset() {
+                this.x = Math.random() * canvas.width;
+                this.y = Math.random() * canvas.height;
+                this.size = Math.random() * 3 + 1;
+                this.speedX = Math.random() * 2 - 1;
+                this.speedY = Math.random() * 2 - 1;
+                this.opacity = Math.random() * 0.5 + 0.2;
+                this.color = `hsl(${Math.random() * 60 + 180}, 70%, 70%)`; // Blue-ish colors
+                this.pulseSpeed = Math.random() * 0.02 + 0.01;
+                this.pulseAngle = Math.random() * Math.PI * 2;
+            }
+
+            update() {
+                this.x += this.speedX;
+                this.y += this.speedY;
+
+                // Pulse size effect
+                this.pulseAngle += this.pulseSpeed;
+                const pulseFactor = Math.sin(this.pulseAngle) * 0.5 + 1;
+                this.currentSize = this.size * pulseFactor;
+
+                // Bounce off edges with random speed change
+                if (this.x < 0 || this.x > canvas.width) {
+                    this.speedX *= -1;
+                    this.speedX += (Math.random() - 0.5) * 0.2;
+                }
+                if (this.y < 0 || this.y > canvas.height) {
+                    this.speedY *= -1;
+                    this.speedY += (Math.random() - 0.5) * 0.2;
+                }
+
+                // Keep speed within bounds
+                this.speedX = Math.max(Math.min(this.speedX, 2), -2);
+                this.speedY = Math.max(Math.min(this.speedY, 2), -2);
+            }
+
+            draw() {
+                ctx.beginPath();
+                ctx.arc(this.x, this.y, this.currentSize, 0, Math.PI * 2);
+                ctx.fillStyle = this.color;
+                ctx.globalAlpha = this.opacity;
+                ctx.fill();
+                ctx.globalAlpha = 1;
+            }
+        }
+
+        // Create particles with different types
+        const particles = [];
+        const particleCount = 70; // Increased count
+        for (let i = 0; i < particleCount; i++) {
+            particles.push(new Particle());
+        }
+
+        // Animation loop
+        function animate() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            
+            // Update and draw particles
+            particles.forEach(particle => {
+                particle.update();
+                particle.draw();
+            });
+
+            // Draw connecting lines with gradient
+            particles.forEach((particle1, i) => {
+                particles.slice(i + 1).forEach(particle2 => {
+                    const dx = particle1.x - particle2.x;
+                    const dy = particle1.y - particle2.y;
+                    const distance = Math.sqrt(dx * dx + dy * dy);
+
+                    if (distance < 150) {
+                        ctx.beginPath();
+                        ctx.moveTo(particle1.x, particle1.y);
+                        ctx.lineTo(particle2.x, particle2.y);
+                        
+                        // Create gradient for line
+                        const gradient = ctx.createLinearGradient(
+                            particle1.x, particle1.y, 
+                            particle2.x, particle2.y
+                        );
+                        gradient.addColorStop(0, particle1.color);
+                        gradient.addColorStop(1, particle2.color);
+                        
+                        const opacity = (150 - distance) / 150 * 0.3;
+                        ctx.strokeStyle = gradient;
+                        ctx.globalAlpha = opacity;
+                        ctx.stroke();
+                        ctx.globalAlpha = 1;
+                    }
+                });
+            });
+
+            // Mouse interaction effect
+            if (mousePos) {
+                particles.forEach(particle => {
+                    const dx = mousePos.x - particle.x;
+                    const dy = mousePos.y - particle.y;
+                    const distance = Math.sqrt(dx * dx + dy * dy);
+                    
+                    if (distance < 150) {
+                        const force = (150 - distance) / 150;
+                        particle.speedX += dx * force * 0.01;
+                        particle.speedY += dy * force * 0.01;
+                    }
+                });
+            }
+
+            requestAnimationFrame(animate);
+        }
+
+        // Mouse interaction
+        let mousePos = null;
+        canvas.addEventListener('mousemove', (e) => {
+            mousePos = {
+                x: e.clientX,
+                y: e.clientY
+            };
+        });
+
+        canvas.addEventListener('mouseleave', () => {
+            mousePos = null;
+        });
+
+        animate();
+
+        // Add this JavaScript code before the existing script
+        const voiceInputBtn = document.getElementById('voice-input-btn');
+        let isListening = false;
+
+        // Check if browser supports speech recognition
+        const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+        if (SpeechRecognition) {
+            const recognition = new SpeechRecognition();
+            recognition.continuous = false;
+            recognition.interimResults = true;
+
+            const voicePopup = document.getElementById('voice-popup');
+            const voiceStatus = document.getElementById('voice-status');
+            let finalTranscript = '';
+
+            voiceInputBtn.addEventListener('click', () => {
+                if (!isListening) {
+                    // Start listening
+                    recognition.start();
+                    voiceInputBtn.classList.add('listening');
+                    voiceInputBtn.style.color = '#4A9EFF';
+                    voicePopup.classList.add('show');
+                    voiceStatus.textContent = 'Listening...';
+                } else {
+                    // Stop listening
+                    recognition.stop();
+                    voiceInputBtn.classList.remove('listening');
+                    voiceInputBtn.style.color = '#CCCCCC';
+                    voicePopup.classList.remove('show');
+                }
+                isListening = !isListening;
+            });
+
+            recognition.onstart = () => {
+                finalTranscript = '';
+                voiceStatus.textContent = 'Listening...';
+            };
+
+            recognition.onresult = (event) => {
+                const transcript = event.results[0][0].transcript;
+                if (event.results[0].isFinal) {
+                    finalTranscript = transcript;
+                    input.value = finalTranscript;
+                    voiceStatus.textContent = 'Processing...';
+                    setTimeout(() => {
+                        recognition.stop();
+                        voicePopup.classList.remove('show');
+                        window.location.href = 'chat.html?q=' + encodeURIComponent(finalTranscript);
+                    }, 1000);
+                }
+            };
+
+            recognition.onend = () => {
+                voiceInputBtn.classList.remove('listening');
+                voiceInputBtn.style.color = '#CCCCCC';
+                voicePopup.classList.remove('show');
+                isListening = false;
+            };
+
+            // Add click outside to close
+            voicePopup.addEventListener('click', (e) => {
+                if (e.target === voicePopup) {
+                    recognition.stop();
+                    voicePopup.classList.remove('show');
+                    voiceInputBtn.classList.remove('listening');
+                    voiceInputBtn.style.color = '#CCCCCC';
+                    isListening = false;
+                }
+            });
+        } else {
+            voiceInputBtn.style.display = 'none';  // Hide button if not supported
+        }
+    </script>
+</body>
+</html>

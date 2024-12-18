@@ -1,0 +1,800 @@
+<html>
+<head>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css">
+    <style>
+        @keyframes typing {
+            from { width: 0; }
+            to { width: 100%; }
+        }
+
+        @keyframes blink {
+            50% { border-color: transparent; }
+        }
+
+        body {
+            background-color: #1E1E1E;
+            margin: 0;
+            font-family: Arial, sans-serif;
+            color: #CCCCCC;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+        }
+
+        .chat-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            width: 100%;
+            height: 100vh;
+            padding: 15px;
+            box-sizing: border-box;
+            position: relative;
+            padding-bottom: 80px;
+        }
+
+        .chat-messages {
+            width: 100%;
+            max-width: 600px;
+            flex-grow: 1;
+            overflow-y: auto;
+            padding: 15px;
+            padding-bottom: 50px;
+            box-sizing: border-box;
+            margin-bottom: 20px;
+            scrollbar-width: none;  /* Firefox */
+            -ms-overflow-style: none;  /* IE and Edge */
+        }
+
+        /* Hide scrollbar for Chrome, Safari and Opera */
+        .chat-messages::-webkit-scrollbar {
+            display: none;
+        }
+
+        .message {
+            margin: 8px 0;
+            display: flex;
+            align-items: flex-start;
+            gap: 10px;
+            max-width: 78%;
+        }
+
+        .message-box {
+            padding: 12px;
+            border-radius: 15px;
+            word-wrap: break-word;
+            flex-grow: 1;
+            width: 100%;
+            box-sizing: border-box;
+            font-size: 14px;
+        }
+
+        .user-message {
+            margin-left: auto;
+            flex-direction: row-reverse;
+        }
+
+        .user-message .message-box {
+            background-color: #2D2D2D;
+            border-bottom-right-radius: 5px;
+        }
+
+        .bot-message {
+            margin-right: auto;
+        }
+
+        .bot-message .message-box {
+            background-color: #4A4A4A;
+            border-bottom-left-radius: 5px;
+        }
+
+        .avatar {
+            width: 28px;
+            height: 28px;
+            border-radius: 50%;
+            flex-shrink: 0;
+        }
+
+        .input-container {
+            display: flex;
+            align-items: center;
+            background-color: #2D2D2D;
+            border-radius: 10px;
+            padding: 8px;
+            width: 100%;
+            max-width: 600px;
+            position: fixed;
+            bottom: 35px;
+            left: 50%;
+            transform: translateX(-50%);
+            z-index: 10;
+        }
+
+        .input-container input {
+            flex: 1;
+            background: none;
+            border: none;
+            color: #CCCCCC;
+            font-size: 14px;
+            padding: 8px;
+            outline: none;
+        }
+
+        .back-button {
+            position: absolute;
+            top: 15px;
+            left: 15px;
+            padding: 8px 15px;
+            background-color: #2D2D2D;
+            border: none;
+            border-radius: 5px;
+            color: #CCCCCC;
+            cursor: pointer;
+            font-size: 14px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            z-index: 1000;
+        }
+
+        .back-button:hover {
+            background-color: #3D3D3D;
+        }
+
+        .back-button i {
+            font-size: 14px;
+            margin-right: 2px;
+        }
+
+        /* Update typing text animation styles */
+        .typing-text {
+            position: relative;
+            display: inline-block;
+            white-space: pre-wrap;
+            word-wrap: break-word;
+            width: 100%;
+        }
+
+        /* Add typing indicator styles */
+        .typing-indicator {
+            display: flex;
+            gap: 5px;
+            padding: 8px 12px;
+            background: #4A4A4A;
+            border-radius: 15px;
+            border-bottom-left-radius: 5px;
+            margin: 10px 0;
+            width: fit-content;
+        }
+
+        .typing-dot {
+            width: 6px;
+            height: 6px;
+            background: #CCCCCC;
+            border-radius: 50%;
+            animation: typing-bounce 1.3s linear infinite;
+        }
+
+        .typing-dot:nth-child(2) { animation-delay: 0.2s; }
+        .typing-dot:nth-child(3) { animation-delay: 0.4s; }
+
+        @keyframes typing-bounce {
+            0%, 60%, 100% { transform: translateY(0); }
+            30% { transform: translateY(-4px); }
+        }
+
+        /* Update the cursor dot styles */
+        .typing-text::after {
+            content: '';
+            position: relative;
+            display: inline-block;
+            width: 8px;          /* Reduced size for better alignment */
+            height: 8px;         /* Reduced size for better alignment */
+            background-color: #fff;
+            border-radius: 50%;
+            margin-left: 5px;
+            vertical-align: baseline; /* Changed from middle to baseline */
+            animation: blink-cursor 0.8s infinite;
+            box-shadow: 0 0 8px #fff;
+            transform: translateY(-1px); /* Fine-tune vertical position */
+        }
+
+        @keyframes blink-cursor {
+            0%, 100% { 
+                opacity: 1;
+                transform: translateY(-1px) scale(1); /* Updated transform */
+            }
+            50% { 
+                opacity: 0.5;
+                transform: translateY(-1px) scale(0.8); /* Updated transform */
+            }
+        }
+
+        .typing-text.completed::after {
+            display: none;
+        }
+
+        /* Add styles for the created-by message */
+        .created-by {
+            position: fixed;
+            bottom: 8px;
+            left: 50%;
+            transform: translateX(-50%);
+            color: #666;
+            font-size: 11px;
+            padding: 4px 12px;
+            background-color: #2D2D2D;
+            border-radius: 15px;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+            z-index: 5;
+        }
+
+        .created-by img {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+        }
+
+        .created-by a {
+            color: #888;
+            text-decoration: none;
+            transition: color 0.3s ease;
+        }
+
+        .created-by a:hover {
+            color: #fff;
+        }
+
+        @keyframes pulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.2); }
+            100% { transform: scale(1); }
+        }
+
+        .listening {
+            animation: pulse 1.5s infinite;
+        }
+
+        .voice-popup {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.8);
+            z-index: 1000;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .voice-popup.show {
+            display: flex;
+        }
+
+        .voice-popup-content {
+            background: #2D2D2D;
+            padding: 30px;
+            border-radius: 15px;
+            text-align: center;
+            box-shadow: 0 0 20px rgba(0, 0, 0, 0.3);
+        }
+
+        .pulse-icon {
+            font-size: 40px;
+            color: #4A9EFF;
+            margin-bottom: 15px;
+            animation: pulse 1.5s infinite;
+        }
+
+        .voice-popup p {
+            color: #CCCCCC;
+            margin: 10px 0;
+            font-size: 18px;
+        }
+
+        .wave-container {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 5px;
+            margin-top: 15px;
+        }
+
+        .wave {
+            width: 4px;
+            height: 20px;
+            background: #4A9EFF;
+            animation: wave 1s infinite;
+            border-radius: 2px;
+        }
+
+        .wave:nth-child(2) {
+            animation-delay: 0.2s;
+        }
+
+        .wave:nth-child(3) {
+            animation-delay: 0.4s;
+        }
+
+        @keyframes wave {
+            0%, 100% { height: 20px; }
+            50% { height: 40px; }
+        }
+    </style>
+</head>
+<body>
+    <button class="back-button" onclick="window.location.href='gpt.html'">
+        <i class="fas fa-arrow-left"></i>
+        Back
+    </button>
+
+
+    <div class="chat-container">
+        <div class="chat-messages" id="chat-messages"></div>
+        <div class="input-container">
+            <input id="chat-input" type="text" placeholder="Type your message..." onkeypress="handleKeyPress(event)"/>
+            <i class="fas fa-microphone" id="voice-input-btn" style="cursor: pointer; margin-left: 10px; color: #CCCCCC;"></i>
+        </div>
+    </div>
+
+    <div id="voice-popup" class="voice-popup">
+        <div class="voice-popup-content">
+            <i class="fas fa-microphone pulse-icon"></i>
+            <p id="voice-status">Listening...</p>
+            <div class="wave-container">
+                <div class="wave"></div>
+                <div class="wave"></div>
+                <div class="wave"></div>
+            </div>
+        </div>
+    </div>
+
+    <div class="created-by">
+        <img src="https://i.ibb.co/0M7zQrS/millennium-logo.png" alt="Millennium World School Logo">
+        Created by <a href="https://github.com/INFIE03" target="_blank">INFIE_03</a> 🚀
+    </div>
+
+    <script>
+        // Process the initial query from URL
+        window.onload = function() {
+            const urlParams = new URLSearchParams(window.location.search);
+            const initialQuery = urlParams.get('q');
+            if (initialQuery) {
+                const decodedQuery = decodeURIComponent(initialQuery);
+                addMessage(decodedQuery, 'user');
+                processMessage(decodedQuery);
+            }
+        }
+
+        function handleKeyPress(event) {
+            if (event.key === 'Enter') {
+                const input = document.getElementById('chat-input');
+                const message = input.value.trim();
+                
+                if (message) {
+                    addMessage(message, 'user');
+                    processMessage(message);
+                    input.value = '';
+                }
+            }
+        }
+
+        function addMessage(text, sender) {
+            const messagesContainer = document.getElementById('chat-messages');
+            const messageDiv = document.createElement('div');
+            messageDiv.className = `message ${sender}-message`;
+
+            // Create avatar
+            const avatar = document.createElement('img');
+            avatar.className = 'avatar';
+            if (sender === 'user') {
+                avatar.src = 'https://ui-avatars.com/api/?name=User&background=2D2D2D&color=fff';
+                avatar.alt = 'User Avatar';
+                messageDiv.appendChild(avatar);
+            } else {
+                avatar.src = 'https://i.ibb.co/0M7zQrS/millennium-logo.png';
+                avatar.alt = 'Millennium World School Bot';
+                messageDiv.appendChild(avatar);
+            }
+
+            // Create message box
+            const messageBox = document.createElement('div');
+            messageBox.className = 'message-box';
+
+            if (sender === 'bot') {
+                const textContainer = document.createElement('div');
+                textContainer.className = 'typing-text';
+                messageBox.appendChild(textContainer);
+
+                let index = 0;
+                const typeText = () => {
+                    if (index < text.length) {
+                        textContainer.textContent += text.charAt(index);
+                        index++;
+                        setTimeout(typeText, 50); // Adjust typing speed here
+                    } else {
+                        // Add completed class when typing is done
+                        textContainer.classList.add('completed');
+                    }
+                };
+                setTimeout(typeText, 50);
+            } else {
+                messageBox.textContent = text;
+            }
+
+            messageDiv.appendChild(messageBox);
+            messagesContainer.appendChild(messageDiv);
+            messagesContainer.scrollTop = messagesContainer.scrollHeight;
+        }
+
+        // Define a comprehensive Q&A database
+        const knowledgeBase = {
+            // General Knowledge
+            'what is the capital of france': 'The capital of France is Paris 🗼',
+            'who invented the telephone': 'Alexander Graham Bell invented the telephone in 1876 📞',
+            'what is the largest planet': 'Jupiter is the largest planet in our solar system 🌍',
+            'how far is the moon': 'The Moon is approximately 238,855 miles (384,400 kilometers) away from Earth 🌙',
+            
+            // Technology
+            'what is ai': 'Artificial Intelligence (AI) is the simulation of human intelligence by machines 🤖',
+            'what is coding': 'Coding is the process of creating instructions for computers using programming languages 💻',
+            'what is html': 'HTML (HyperText Markup Language) is the standard language for creating web pages 🌐',
+            'what is css': 'CSS (Cascading Style Sheets) is used to style and layout web pages 🎨',
+            
+            // Science
+            'what is gravity': 'Gravity is a force that attracts objects toward each other, discovered by Sir Isaac Newton 🍎',
+            'what is dna': 'DNA is a molecule that carries genetic instructions for development and functioning of living things 🧬',
+            'what is photosynthesis': 'Photosynthesis is the process by which plants convert sunlight into energy 🌱',
+            
+            // Math
+            'what is pi': 'Pi (π) is approximately 3.14159, representing the ratio of a circle\'s circumference to its diameter 📐',
+            'what is algebra': 'Algebra is a branch of mathematics dealing with symbols and rules for manipulating these symbols ➗',
+            
+            // History
+            'who was einstein': 'Albert Einstein was a famous physicist known for the theory of relativity (E=mc²) 👨‍🔬',
+            'what is world war 2': 'World War II (1939-1945) was a global conflict involving most of the world\'s nations 🌍',
+            
+            // Entertainment
+            'what is netflix': 'Netflix is a streaming service that offers movies and TV shows for online viewing 🎬',
+            'what is spotify': 'Spotify is a digital music streaming service with millions of songs 🎵',
+            
+            // Social Media
+            'what is instagram': 'Instagram is a social media platform focused on photo and video sharing 📸',
+            'what is twitter': 'Twitter (now X) is a social media platform for short messages and updates 🐦',
+            
+            // Sports
+            'what is fifa': 'FIFA is the international governing body of football/soccer ⚽',
+            'what is nba': 'The NBA (National Basketball Association) is the premier professional basketball league 🏀',
+            
+            // Food
+            'what is pizza': 'Pizza is an Italian dish consisting of a flatbread topped with tomato sauce, cheese, and various toppings 🍕',
+            'what is sushi': 'Sushi is a Japanese dish featuring vinegared rice combined with various ingredients, often raw fish 🍱',
+            
+            // Tesla Coil Questions
+            'what is a tesla coil': 'A Tesla coil is an electrical device that generates high-voltage, low-current electricity. It works on the principles of electromagnetic induction and resonance to produce impressive electrical arcs and sparks ⚡',
+            
+            'who invented the tesla coil': 'The Tesla coil was invented by Nikola Tesla in 1891. It was originally designed to study high-voltage phenomena and explore wireless power transmission 🔬',
+            
+            'what are the main components of a tesla coil': 'The key components of a Tesla coil are:\n\n' +
+                '• Primary coil: A coil of thick wire that carries low-voltage electricity\n' +
+                '• Secondary coil: A coil of thin wire with many turns that generates high voltage\n' +
+                '• Capacitor: Stores energy and releases it in bursts\n' +
+                '• Spark gap: A gap where electricity arcs, initiating the oscillation\n' +
+                '• Power supply: Provides electricity to the system ⚡',
+            
+            'tesla coil components': 'The key components of a Tesla coil are:\n\n' +
+                '• Primary coil: A coil of thick wire that carries low-voltage electricity\n' +
+                '• Secondary coil: A coil of thin wire with many turns that generates high voltage\n' +
+                '• Capacitor: Stores energy and releases it in bursts\n' +
+                '• Spark gap: A gap where electricity arcs, initiating the oscillation\n' +
+                '• Power supply: Provides electricity to the system ⚡',
+            
+            'what advancements have been made in tesla coil technology': 'Modern variations like solid-state Tesla coils use transistors instead of spark gaps, providing greater control and efficiency. They are used in scientific research and artistic performances 🔬',
+            
+            'tesla coil advancements': 'Modern variations like solid-state Tesla coils use transistors instead of spark gaps, providing greater control and efficiency. They are used in scientific research and artistic performances 🔬',
+            
+            'what are the practical applications of tesla coils': 'Tesla coils are used in:\n\n' +
+                '• Educational demonstrations of electromagnetic principles\n' +
+                '• High-voltage testing in engineering\n' +
+                '• Lighting systems (e.g., neon signs)\n' +
+                '• Entertainment, such as music-playing Tesla coils in shows 🎵⚡',
+            
+            'tesla coil applications': 'Tesla coils are used in:\n\n' +
+                '• Educational demonstrations of electromagnetic principles\n' +
+                '• High-voltage testing in engineering\n' +
+                '• Lighting systems (e.g., neon signs)\n' +
+                '• Entertainment, such as music-playing Tesla coils in shows 🎵⚡'
+        };
+
+        // Add this before the knowledgeBase definition
+        const responses = {
+            'weather': {
+                response: "Opening weather service in a new tab...",
+                url: 'https://weather.com'
+            },
+            'news': {
+                response: "Opening latest news in a new tab...",
+                url: 'https://news.google.com'
+            },
+            'youtube': {
+                response: "Opening YouTube in a new tab...",
+                url: 'https://youtube.com'
+            },
+            'google': {
+                response: "Opening Google search in a new tab...",
+                url: 'https://google.com'
+            },
+            'github': {
+                response: "Opening GitHub in a new tab...",
+                url: 'https://github.com'
+            },
+            'hello': {
+                response: "Hi there! 👋 How can I help you today?"
+            },
+            'hi': {
+                response: "Hello! 😊 What can I do for you?"
+            },
+            'help': {
+                response: "I can help you with several things:\n\n" +
+                         "• Type 'weather' for weather information\n" +
+                         "• Type 'news' for latest news\n" +
+                         "• Type 'youtube' to go to YouTube\n" +
+                         "• Type 'google' for Google search\n" +
+                         "• Type 'github' for GitHub\n" +
+                         "• Ask me general questions\n" +
+                         "• Say hello! 👋"
+            },
+            'who are you': {
+                response: "I'm Millennium bot, your friendly AI assistant! I can help you navigate to different websites and answer your questions. 🤖"
+            },
+            'what can you do': {
+                response: "I can help you navigate to various websites and chat with you! Try typing 'help' to see what I can do. 🚀"
+            },
+            'bye': {
+                response: "Goodbye! Have a great day! 👋"
+            },
+            'thank you': {
+                response: "You're welcome! 😊"
+            },
+            'thanks': {
+                response: "You're welcome! Happy to help! 🌟"
+            }
+        };
+
+        // Add function to show typing indicator
+        function showTypingIndicator() {
+            const messagesContainer = document.getElementById('chat-messages');
+            const typingDiv = document.createElement('div');
+            typingDiv.className = 'message bot-message';
+            typingDiv.id = 'typing-indicator';
+
+            // Create bot avatar
+            const avatar = document.createElement('img');
+            avatar.className = 'avatar';
+            avatar.src = 'https://i.ibb.co/0M7zQrS/millennium-logo.png';
+            avatar.alt = 'Millennium World School Bot';
+
+            // Create typing animation
+            const typingIndicator = document.createElement('div');
+            typingIndicator.className = 'typing-indicator';
+            for (let i = 0; i < 3; i++) {
+                const dot = document.createElement('div');
+                dot.className = 'typing-dot';
+                typingIndicator.appendChild(dot);
+            }
+
+            typingDiv.appendChild(avatar);
+            typingDiv.appendChild(typingIndicator);
+            messagesContainer.appendChild(typingDiv);
+            messagesContainer.scrollTop = messagesContainer.scrollHeight;
+        }
+
+        // Add function to remove typing indicator
+        function removeTypingIndicator() {
+            const typingIndicator = document.getElementById('typing-indicator');
+            if (typingIndicator) {
+                typingIndicator.remove();
+            }
+        }
+
+        // Update processMessage function
+        async function processMessage(message) {
+            const lowercaseMessage = message.toLowerCase();
+            
+            // Show typing indicator
+            showTypingIndicator();
+            
+            // Add delay before response
+            await new Promise(resolve => setTimeout(resolve, 1500));
+
+            // Remove typing indicator
+            removeTypingIndicator();
+            
+            // Handle greetings first
+            if (lowercaseMessage.includes('hello') || lowercaseMessage.includes('hi ')) {
+                if (lowercaseMessage.includes('millennium')) {
+                    addMessage("Hello! I'm Millennium Bot. I'm doing great, thank you for asking! How can I help you today? 😊", 'bot');
+                    return;
+                }
+                addMessage("Hello there! How can I help you today? 👋", 'bot');
+                return;
+            }
+
+            // Handle "how are you" questions
+            if (lowercaseMessage.includes('how are you')) {
+                addMessage("I'm doing great, thank you for asking! How can I assist you today? 😊", 'bot');
+                return;
+            }
+
+            // Check predefined commands
+            if (responses[lowercaseMessage]) {
+                let responseObj = responses[lowercaseMessage];
+                addMessage(responseObj.response, 'bot');
+                
+                if (responseObj.url) {
+                    setTimeout(() => {
+                        window.open(responseObj.url, '_blank');
+                    }, 1500);
+                }
+                return;
+            }
+
+            // Check knowledge base with improved matching
+            let bestMatch = null;
+            let bestMatchScore = 0;
+
+            for (let question in knowledgeBase) {
+                // Check for exact matches first
+                if (lowercaseMessage === question) {
+                    addMessage(knowledgeBase[question], 'bot');
+                    return;
+                }
+
+                // Calculate similarity score
+                const questionWords = question.split(' ');
+                const messageWords = lowercaseMessage.split(' ');
+                let matchScore = 0;
+
+                questionWords.forEach(qWord => {
+                    if (qWord.length > 2) {  // Only consider words longer than 2 characters
+                        messageWords.forEach(mWord => {
+                            if (mWord.length > 2 && mWord.includes(qWord)) {
+                                matchScore++;
+                            }
+                        });
+                    }
+                });
+
+                if (matchScore > bestMatchScore) {
+                    bestMatch = question;
+                    bestMatchScore = matchScore;
+                }
+            }
+
+            // If we found a good match
+            if (bestMatchScore > 1) {
+                addMessage(knowledgeBase[bestMatch], 'bot');
+                return;
+            }
+
+            // Handle topic-specific suggestions
+            if (lowercaseMessage.includes('tesla')) {
+                addMessage("I can tell you about Tesla coils! Try asking about:\n" +
+                          "• What is a Tesla coil?\n" +
+                          "• Who invented the Tesla coil?\n" +
+                          "• What are its components?\n" +
+                          "• What are its applications?\n" +
+                          "• What advancements have been made? 🔬", 'bot');
+                return;
+            }
+
+            // Handle common phrases
+            if (lowercaseMessage.includes('thank')) {
+                addMessage("You're welcome! 😊", 'bot');
+                return;
+            }
+
+            // Handle help request
+            if (lowercaseMessage.includes('help')) {
+                addMessage("I can help you with:\n\n" +
+                          "• General knowledge questions\n" +
+                          "• Science and technology\n" +
+                          "• History and entertainment\n" +
+                          "• Math and basic concepts\n" +
+                          "• Sports and food\n" +
+                          "• Website redirects (try 'youtube', 'google', etc.)\n" +
+                          "Just ask me anything! 🤓", 'bot');
+                return;
+            }
+
+            // Default response for unmatched queries
+            addMessage("I'm not sure about that specific question. Could you try rephrasing it, or ask something else? You can also type 'help' to see what I can do! 🤔", 'bot');
+        }
+
+        function goBack() {
+            window.location.href = 'gpt.html';
+        }
+
+        const voiceInputBtn = document.getElementById('voice-input-btn');
+        let isListening = false;
+
+        // Check if browser supports speech recognition
+        const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+        if (SpeechRecognition) {
+            const recognition = new SpeechRecognition();
+            recognition.continuous = false;
+            recognition.interimResults = true;
+
+            const voicePopup = document.getElementById('voice-popup');
+            const voiceStatus = document.getElementById('voice-status');
+            let finalTranscript = '';
+
+            voiceInputBtn.addEventListener('click', () => {
+                if (!isListening) {
+                    // Start listening
+                    recognition.start();
+                    voiceInputBtn.classList.add('listening');
+                    voiceInputBtn.style.color = '#4A9EFF';
+                    voicePopup.classList.add('show');
+                    voiceStatus.textContent = 'Listening...';
+                } else {
+                    // Stop listening
+                    recognition.stop();
+                    voiceInputBtn.classList.remove('listening');
+                    voiceInputBtn.style.color = '#CCCCCC';
+                    voicePopup.classList.remove('show');
+                }
+                isListening = !isListening;
+            });
+
+            recognition.onstart = () => {
+                finalTranscript = '';
+                voiceStatus.textContent = 'Listening...';
+            };
+
+            recognition.onresult = (event) => {
+                const transcript = event.results[0][0].transcript;
+                if (event.results[0].isFinal) {
+                    finalTranscript = transcript;
+                    document.getElementById('chat-input').value = finalTranscript;
+                    voiceStatus.textContent = 'Processing...';
+                    setTimeout(() => {
+                        recognition.stop();
+                        voicePopup.classList.remove('show');
+                        // Trigger the chat input
+                        const input = document.getElementById('chat-input');
+                        addMessage(finalTranscript, 'user');
+                        processMessage(finalTranscript);
+                        input.value = '';
+                    }, 1000);
+                }
+            };
+
+            recognition.onend = () => {
+                voiceInputBtn.classList.remove('listening');
+                voiceInputBtn.style.color = '#CCCCCC';
+                voicePopup.classList.remove('show');
+                isListening = false;
+            };
+
+            // Add click outside to close
+            voicePopup.addEventListener('click', (e) => {
+                if (e.target === voicePopup) {
+                    recognition.stop();
+                    voicePopup.classList.remove('show');
+                    voiceInputBtn.classList.remove('listening');
+                    voiceInputBtn.style.color = '#CCCCCC';
+                    isListening = false;
+                }
+            });
+        } else {
+            voiceInputBtn.style.display = 'none';
+        }
+    </script>
+</body>
+</html> 
